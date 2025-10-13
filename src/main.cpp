@@ -32,6 +32,8 @@ void setup() {
   pinMode(A1, INPUT);
   pinMode(A0, INPUT);
 
+  servo2.write(homepos[2]);
+
   while (true){
     bool check[6] = {false, false, false, false, false, false};
 
