@@ -1,47 +1,63 @@
 #include <Arduino.h>
 #include <Servo.h>
 
-Servo servo0;  // Create a single servo object
+// Create Servo objects for four servos
+Servo servo0;
 Servo servo1;
 Servo servo2;
 Servo servo3;
-Servo servo4;
-Servo servo5;
 
-int servoPos[6];   // Array to store servo positions
-int potValues[6];
+int servoPos[4];   // Array to store limited servo positions
+int potValues[4];  // Array to store mapped potentiometer values
 
-const int potRead[] = {A0, A1, A2, A3, A4, A5};
-int homepos[6] = {90, 90, 0, 90, 90, 90};
-int BOT_LIMIT[6] = {0, 0, 0, 0, 90, 0};
-int TOP_LIMIT[6] = {180, 180, 120, 120, 150, 180};
+//pins definition
+int servo[4] = {3, 5, 6, 9};
+int Led[4] = {10, 8, 7, 4};
+const int potRead[] = {A0, A1, A2, A3};
+
+//home position and limits
+int homepos[4] = {90,90, 90, 90};
+int BOT_LIMIT[4] = {0, 0, 0, 0};
+int TOP_LIMIT[4] = {180, 180, 180, 180};
 
 void setup() {
   Serial.begin(9600);
-  servo0.attach(2);
-  servo1.attach(3);
-  servo2.attach(4);
-  servo3.attach(5);
-  servo4.attach(6);
-  servo5.attach(7);
 
-  pinMode(A5, INPUT);
-  pinMode(A4, INPUT);
-  pinMode(A3, INPUT);
-  pinMode(A2, INPUT);
-  pinMode(A1, INPUT);
-  pinMode(A0, INPUT);
+  pinMode(Led[0], OUTPUT); //1. os
+  pinMode(Led[1], OUTPUT); //2. os
+  pinMode(Led[2], OUTPUT); //3. os
+  pinMode(Led[3], OUTPUT); //4. os
 
+  servo0.attach(servo[0]); //1. os
+  servo1.attach(servo[1]); //2. os
+  servo2.attach(servo[2]); //3. os
+  servo3.attach(servo[3]); //4. os
+
+  pinMode(A0, INPUT); //1. os
+  pinMode(A1, INPUT); //2. os
+  pinMode(A2, INPUT); //3. os
+  pinMode(A3, INPUT); //4. os
+
+  //Servo wake up sequence
+  servo0.write(homepos[0]);
+  delay(2000); 
+  servo1.write(homepos[1]);
+  delay(2000);
   servo2.write(homepos[2]);
+  delay(2000);
+  servo3.write(homepos[3]);
+  delay(2000);
 
+  //Potentiometer Home Calibration loop
   while (true){
-    bool check[6] = {false, false, false, false, false, false};
-
+    bool check[4] = {false, false, false, false};
     Serial.print("Set pot 90°: ");
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 4; i++) {//iterate for every motor, led, potentiometer
+
       int potValue = map(analogRead(potRead[i]),0,1023,0,180);  // Read once and store
-      
+
+      //DEBUG IN SERIAL
       Serial.print("Pot: ");
       Serial.print(homepos[i]);  // Add index number
       Serial.print("=");
@@ -51,49 +67,51 @@ void setup() {
       if (potValue > homepos[i]-5 && potValue < homepos[i]+5) {
           check[i] = true;
           //Serial.println("Condition met!");
+
       }else{
           //Serial.println("Condition not met.");
           check[i] = false;
       }
+
+      digitalWrite(Led[i], check[i]); //check calibration status and turn the led on/off
     }
     Serial.print("\n");
     
-    if (check[0] && check[1] && check[2] && check[3] && check[4] && check[5]){
+    if (check[0] && check[1] && check[2] && check[3]){
       break;
     }
   }  
 }
 
+//function to read potentiometers and move servos accordingly
 void moveServos() {
   // Map potentiometer readings (0-1023) to servo angles (0-180)
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 4; i++) {
     servoPos[i] = map(analogRead(potRead[i]), 0, 1023, BOT_LIMIT[i], TOP_LIMIT[i]);
     
     Serial.print(servoPos[i]); Serial.print(" ");
-    if (i == 5) Serial.println();
+    if (i == 3) Serial.println();
   }
 
   //CHECK SERVO COLISIONS
-  int L3 = 180-servoPos[3]-90; //L3 = 90 - servo3
-  int L2 = servoPos[2]+50;     //L2 = servo2 - 90
-  int Lim = L2-L3;
+  // int L3 = 180-servoPos[3]-90; //L3 = 90 - servo3
+  // int L2 = servoPos[2]+50;     //L2 = servo2 - 90
+  // int Lim = L2-L3;
   // Serial.print("Lim: "); Serial.print(Lim);
   // Serial.print(", L2 = "); Serial.print(L2);
   // Serial.print(", L3 = "); Serial.println(L3);
   
   // Write positions to servos using array
-  servo0.write(servoPos[0]);
-  servo1.write(servoPos[1]);
   
-  servo2.write(servoPos[2]); //DEF 0, 0-120
-  if(Lim<23){
-    servo3.write(113-L2); //DEF 90, 0-120
-  }else{
-    servo3.write(servoPos[3]); //DEF 90, 0-120
-  }
-  servo4.write(servoPos[4]); //DEF 90, 90-140
-  servo5.write(servoPos[5]); //DEF 90, 0-180
-
+  servo0.write(servoPos[0]); //DEF 0, 0-120
+  // if(Lim<23){
+  //   servo1.write(113-L2); //DEF 90, 0-120
+  // }else{
+  //   servo1.write(servoPos[1]); //DEF 90, 0-120
+  // }
+  servo1.write(servoPos[1]); //DEF 90, 0-120
+  servo2.write(servoPos[2]); //DEF 90, 90-140
+  servo3.write(servoPos[3]); //DEF 90, 0-180
 }
 
 
