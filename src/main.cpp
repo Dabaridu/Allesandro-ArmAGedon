@@ -16,9 +16,9 @@ int Led[4] = {10, 8, 7, 4};
 const int potRead[] = {A0, A1, A2, A3};
 
 //home position and limits
-int homepos[4] = {90,90, 90, 90};
+int homepos[4] = {90,35, 95, 90};
 int BOT_LIMIT[4] = {0, 0, 0, 0};
-int TOP_LIMIT[4] = {180, 180, 180, 180};
+int TOP_LIMIT[4] = {180, 115, 180, 180};
 
 void setup() {
   Serial.begin(9600);
@@ -40,13 +40,13 @@ void setup() {
 
   //Servo wake up sequence
   servo0.write(homepos[0]);
-  delay(2000); 
+  delay(500); 
   servo1.write(homepos[1]);
-  delay(2000);
+  delay(500);
   servo2.write(homepos[2]);
-  delay(2000);
+  delay(500);
   servo3.write(homepos[3]);
-  delay(2000);
+  delay(500);
 
   //Potentiometer Home Calibration loop
   while (true){
@@ -103,15 +103,13 @@ void moveServos() {
   
   // Write positions to servos using array
   
-  servo0.write(servoPos[0]); //DEF 0, 0-120
-  // if(Lim<23){
-  //   servo1.write(113-L2); //DEF 90, 0-120
-  // }else{
-  //   servo1.write(servoPos[1]); //DEF 90, 0-120
-  // }
-  servo1.write(servoPos[1]); //DEF 90, 0-120
-  servo2.write(servoPos[2]); //DEF 90, 90-140
-  servo3.write(servoPos[3]); //DEF 90, 0-180
+  servo0.write(servoPos[0]);
+
+  servo1.write(servoPos[1]); 
+
+  servo2.write(servoPos[2]);
+
+  servo3.write(servoPos[3]); 
 }
 
 
